@@ -9,9 +9,19 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.14.0",
+    "better-auth": "^1.7.23",
+    "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^1.72.0",
     "next": "16.4.6",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "react-hook-form": "^7.92.0",
+    "react-toastify": "^11.2.0",
+    "react-virtualized": "^10.0.1",
+    "recharts": "^3.10.1",
+    "sonner": "^2.0.8",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "4.3.3",
