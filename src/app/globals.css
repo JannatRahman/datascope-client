@@ -1,48 +1,88 @@
 @import "tailwindcss";
 
+/* ─── Design System Color Tokens ─────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
+  /* Primary */
+  --color-primary:        #4F46E5;
+  --color-primary-hover:  #4338CA;
+  --color-primary-light:  #EEF2FF;
+
+  /* Surfaces (light mode) */
+  --color-bg:             #F8FAFC;
+  --color-surface:        #FFFFFF;
+  --color-border:         #E2E8F0;
+  --color-row-hover:      #F1F5F9;
+
+  /* Text (light mode) */
+  --color-heading:        #0F172A;
+  --color-body:           #334155;
+  --color-muted:          #64748B;
+
+  /* Status */
+  --color-success:        #10B981;
+  --color-warning:        #F59E0B;
+  --color-error:          #EF4444;
+  --color-info:           #0EA5E9;
+
+  /* Legacy compat */
+  --background:           var(--color-bg);
+  --foreground:           var(--color-heading);
 }
 
+/* ─── Dark Mode ───────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg:       #0B1120;
+    --color-surface:  #111827;
+    --color-border:   #1E293B;
+    --color-primary:  #818CF8;
+    --color-body:     #E2E8F0;
+    --color-muted:    #94A3B8;
+
+    --background:     var(--color-bg);
+    --foreground:     var(--color-body);
+  }
+}
+
+/* ─── Tailwind v4 theme extension ─────────────────────────────────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background:    var(--color-bg);
+  --color-foreground:    var(--color-heading);
+  --font-sans:           system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono:           ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Extend with brand tokens so bg-primary etc. work */
+  --color-brand-primary:  #4F46E5;
+  --color-brand-hover:    #4338CA;
+  --color-brand-surface:  #F8FAFC;
 }
 
+/* ─── Base styles ─────────────────────────────────────────────────────────── */
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-body);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
+/* ─── Custom scrollbar ────────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: #F1F5F9; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
 
-/* Gradient text utility */
-.gradient-text {
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
+/* ─── Status color utilities ──────────────────────────────────────────────── */
+.status-success  { color: #10B981; }
+.status-warning  { color: #F59E0B; }
+.status-error    { color: #EF4444; }
+.status-info     { color: #0EA5E9; }
+
+.bg-status-success { background-color: #10B981; }
+.bg-status-warning { background-color: #F59E0B; }
+.bg-status-error   { background-color: #EF4444; }
+.bg-status-info    { background-color: #0EA5E9; }

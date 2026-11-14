@@ -25,7 +25,7 @@ export default function Navbar() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-100"
+          ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-[#E2E8F0]"
           : "bg-transparent"
       }`}
     >
@@ -34,7 +34,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
             <div className="relative">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-md group-hover:shadow-blue-200 transition-shadow duration-300">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center shadow-md group-hover:shadow-indigo-200 transition-shadow duration-300">
                 <svg
                   width="18"
                   height="18"
@@ -59,7 +59,7 @@ export default function Navbar() {
                 scrolled ? "text-slate-900" : "text-white"
               }`}
             >
-              Data<span className="text-blue-500">Scope</span>
+              Data<span className="text-indigo-500">Scope</span>
             </span>
           </Link>
 
@@ -94,7 +94,7 @@ export default function Navbar() {
             </a>
             <a
               href="#get-started"
-              className="px-5 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-blue-200 transition-all duration-200 hover:-translate-y-0.5"
+              className="px-5 py-2 text-sm font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-indigo-200 transition-all duration-200 hover:-translate-y-0.5"
             >
               Get Started
             </a>
@@ -131,7 +131,7 @@ export default function Navbar() {
       <div
         className={`lg:hidden transition-all duration-300 overflow-hidden ${
           menuOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
-        } bg-white border-t border-slate-100 shadow-lg`}
+        } bg-white border-t border-[#E2E8F0] shadow-lg`}
       >
         <div className="px-6 py-4 flex flex-col gap-1">
           {navLinks.map((link) => (
@@ -144,7 +144,7 @@ export default function Navbar() {
               {link.label}
             </a>
           ))}
-          <div className="flex gap-3 mt-3 pt-3 border-t border-slate-100">
+          <div className="flex gap-3 mt-3 pt-3 border-t border-[#E2E8F0]">
             <a
               href="#login"
               className="flex-1 text-center py-2.5 text-sm font-medium text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
@@ -153,7 +153,7 @@ export default function Navbar() {
             </a>
             <a
               href="#get-started"
-              className="flex-1 text-center py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex-1 text-center py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
             >
               Get Started
             </a>

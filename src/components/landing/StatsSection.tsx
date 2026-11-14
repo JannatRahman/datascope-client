@@ -14,9 +14,9 @@ const stats = [
         <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
       </svg>
     ),
-    gradient: "from-blue-500 to-cyan-500",
-    bgGlow: "bg-blue-500/10",
-    borderColor: "border-blue-500/20",
+    gradient: "from-indigo-500 to-sky-500",
+    bgGlow: "bg-indigo-500/10",
+    borderColor: "border-indigo-500/20",
   },
   {
     value: "6",
@@ -54,9 +54,9 @@ const stats = [
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
       </svg>
     ),
-    gradient: "from-green-500 to-emerald-500",
-    bgGlow: "bg-green-500/10",
-    borderColor: "border-green-500/20",
+    gradient: "from-emerald-500 to-emerald-500",
+    bgGlow: "bg-emerald-500/10",
+    borderColor: "border-emerald-500/20",
   },
 ];
 
@@ -86,13 +86,13 @@ export default function StatsSection() {
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8">
         {/* Section header */}
         <div className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-full px-4 py-1.5 mb-4">
-            <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-            <span className="text-blue-600 text-sm font-semibold">Platform Capabilities</span>
+          <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 rounded-full px-4 py-1.5 mb-4">
+            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+            <span className="text-indigo-600 text-sm font-semibold">Platform Capabilities</span>
           </div>
           <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-3">
             Built for{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-indigo-600">
               Scale
             </span>
             {" "}& Performance

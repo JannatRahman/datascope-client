@@ -13,10 +13,10 @@ const features = [
     description:
       "Full-text search across all dataset fields with real-time debouncing. Find any record in milliseconds with keyword highlighting and relevance ranking.",
     tags: ["Full-text", "Debounced", "Highlighted"],
-    gradient: "from-blue-500 to-cyan-500",
-    bgLight: "bg-blue-50",
-    textColor: "text-blue-600",
-    badgeColor: "bg-blue-100 text-blue-700",
+    gradient: "from-indigo-500 to-sky-500",
+    bgLight: "bg-indigo-50",
+    textColor: "text-indigo-600",
+    badgeColor: "bg-indigo-100 text-indigo-700",
   },
   {
     id: 2,
@@ -81,10 +81,10 @@ const features = [
     description:
       "Save any combination of search query, filters, sort order, and column layout as a reusable view. Share views with teammates for collaborative workflows.",
     tags: ["Shareable", "Persistent", "Team views"],
-    gradient: "from-green-500 to-emerald-500",
-    bgLight: "bg-green-50",
-    textColor: "text-green-600",
-    badgeColor: "bg-green-100 text-green-700",
+    gradient: "from-emerald-500 to-emerald-500",
+    bgLight: "bg-emerald-50",
+    textColor: "text-emerald-600",
+    badgeColor: "bg-emerald-100 text-emerald-700",
   },
   {
     id: 6,
@@ -99,10 +99,10 @@ const features = [
     description:
       "Built-in analytics dashboards with Recharts visualizations. Understand trends, distributions, and summaries across any dataset without leaving the platform.",
     tags: ["Charts", "Trends", "Summaries"],
-    gradient: "from-cyan-500 to-sky-500",
-    bgLight: "bg-cyan-50",
-    textColor: "text-cyan-600",
-    badgeColor: "bg-cyan-100 text-cyan-700",
+    gradient: "from-sky-500 to-sky-500",
+    bgLight: "bg-sky-50",
+    textColor: "text-sky-600",
+    badgeColor: "bg-sky-100 text-sky-700",
   },
   {
     id: 7,
@@ -117,7 +117,7 @@ const features = [
     description:
       "Async background export jobs for large datasets. Export filtered and sorted data as CSV with real-time progress tracking and email notification on completion.",
     tags: ["Async jobs", "CSV export", "Progress tracking"],
-    gradient: "from-indigo-500 to-blue-500",
+    gradient: "from-indigo-500 to-indigo-500",
     bgLight: "bg-indigo-50",
     textColor: "text-indigo-600",
     badgeColor: "bg-indigo-100 text-indigo-700",
@@ -148,7 +148,7 @@ export default function FeaturesSection() {
   return (
     <section id="features" className="relative py-20 lg:py-28 bg-white overflow-hidden">
       {/* Decorative background elements */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-50 rounded-full blur-3xl opacity-60" />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-50 rounded-full blur-3xl opacity-60" />
       <div className="absolute bottom-0 left-0 w-80 h-80 bg-violet-50 rounded-full blur-3xl opacity-60" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8">
@@ -160,7 +160,7 @@ export default function FeaturesSection() {
           </div>
           <h2 className="text-3xl lg:text-5xl font-bold text-slate-900 mb-4 leading-tight">
             Everything you need to{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-indigo-600">
               master your data
             </span>
           </h2>
@@ -175,7 +175,7 @@ export default function FeaturesSection() {
           {features.map((feature) => (
             <div
               key={feature.id}
-              className="group relative bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 cursor-pointer overflow-hidden"
+              className="group relative bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 cursor-pointer overflow-hidden"
             >
               {/* Top gradient bar on hover */}
               <div
@@ -238,7 +238,7 @@ export default function FeaturesSection() {
             <div className="flex gap-3 shrink-0">
               <a
                 href="#get-started"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-sm transition-all duration-200 hover:-translate-y-0.5 shadow-lg"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-sm transition-all duration-200 hover:-translate-y-0.5 shadow-lg"
               >
                 Get Started Free
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
