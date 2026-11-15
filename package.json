@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint"
   },
@@ -19,6 +19,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-hook-form": "^7.92.0",
+    "react-redux": "^9.2.0",
     "react-toastify": "^11.2.0",
     "react-virtualized": "^10.0.1",
     "recharts": "^3.10.1",

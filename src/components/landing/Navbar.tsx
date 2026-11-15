@@ -14,11 +14,11 @@ export default function Navbar() {
   }, []);
 
   const navLinks = [
-    { label: "Home", href: "#home" },
-    { label: "Features", href: "#features" },
-    { label: "Solutions", href: "#solutions" },
-    { label: "How It Works", href: "#how-it-works" },
-    { label: "About", href: "#about" },
+    { label: "Home", href: "/" },
+    { label: "Datasets", href: "/datasets" },
+    { label: "Explorer", href: "/explorer" },
+    { label: "Features", href: "/#features" },
+    { label: "How It Works", href: "/#how-it-works" },
   ];
 
   return (
@@ -66,7 +66,7 @@ export default function Navbar() {
           {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.label}
                 href={link.href}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-white/10 ${
@@ -76,14 +76,14 @@ export default function Navbar() {
                 }`}
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
           </nav>
 
           {/* CTA Buttons */}
           <div className="hidden lg:flex items-center gap-3">
-            <a
-              href="#login"
+            <Link
+              href="/login"
               className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                 scrolled
                   ? "text-slate-700 hover:text-slate-900 hover:bg-slate-100"
@@ -91,13 +91,13 @@ export default function Navbar() {
               }`}
             >
               Login
-            </a>
-            <a
-              href="#get-started"
+            </Link>
+            <Link
+              href="/datasets"
               className="px-5 py-2 text-sm font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-indigo-200 transition-all duration-200 hover:-translate-y-0.5"
             >
-              Get Started
-            </a>
+              Explore Data
+            </Link>
           </div>
 
           {/* Mobile Menu Toggle */}
