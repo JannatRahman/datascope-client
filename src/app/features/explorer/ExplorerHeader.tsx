@@ -12,6 +12,7 @@ import {
   Search,
   X,
   Download,
+  BookmarkPlus,
 } from 'lucide-react';
 import { DatasetItem } from '../../api/endpoints/datasets.api';
 
@@ -29,6 +30,8 @@ interface ExplorerHeaderProps {
   onOpenColumnModal: () => void;
   onOpenExportModal?: () => void;
   canExport?: boolean;
+  onSaveView?: () => void;
+  canSaveView?: boolean;
 }
 
 export function ExplorerHeader({
@@ -45,6 +48,8 @@ export function ExplorerHeader({
   onOpenColumnModal,
   onOpenExportModal,
   canExport = false,
+  onSaveView,
+  canSaveView = false,
 }: ExplorerHeaderProps) {
   return (
     <div className="border-b border-slate-200 bg-white">
@@ -117,6 +122,16 @@ export function ExplorerHeader({
               <Columns3 className="h-3.5 w-3.5 text-slate-500" />
               <span>Columns</span>
             </button>
+
+            {canSaveView && onSaveView && (
+              <button
+                onClick={onSaveView}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-sky-300 bg-sky-50 px-3 py-1.5 text-xs font-medium text-sky-700 shadow-2xs hover:bg-sky-100"
+              >
+                <BookmarkPlus className="h-3.5 w-3.5 text-sky-600" />
+                <span>Save View</span>
+              </button>
+            )}
 
             {canExport && onOpenExportModal && (
               <button

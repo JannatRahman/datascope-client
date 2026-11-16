@@ -5,7 +5,6 @@ import Link from 'next/link';
 import {
   User,
   Shield,
-  Key,
   Sliders,
   CheckCircle2,
   AlertCircle,
@@ -13,11 +12,10 @@ import {
   LineChart,
   Lock,
   Mail,
-  Calendar,
-  Layers,
   Sparkles,
+  Bell,
+  Moon,
 } from 'lucide-react';
-import { AppNavbar } from '../../components/layout/AppNavbar';
 import { useGetMeQuery } from '../../api/endpoints/auth.api';
 import { useGetPreferencesQuery, useUpdatePreferencesMutation } from '../../api/endpoints/preferences.api';
 
@@ -30,7 +28,8 @@ export default function ProfilePage() {
   const roleName = user?.roleName || 'Viewer';
 
   // Profile update form state
-  const [name, setName] = useState('');
+  const [nameOverride, setNameOverride] = useState<string | null>(null);
+  const name = nameOverride ?? user?.name ?? '';
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMsg, setProfileMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -42,23 +41,30 @@ export default function ProfilePage() {
   const [passwordMsg, setPasswordMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Preferences form state
-  const [density, setDensity] = useState('comfortable');
-  const [pageSize, setPageSize] = useState(25);
+  const [densityOverride, setDensityOverride] = useState<string | null>(null);
+  const [pageSizeOverride, setPageSizeOverride] = useState<number | null>(null);
+  const density = densityOverride ?? prefData?.data?.tableDensity ?? 'comfortable';
+  const pageSize = pageSizeOverride ?? prefData?.data?.defaultPageSize ?? 25;
   const [prefSaving, setPrefSaving] = useState(false);
   const [prefSaved, setPrefSaved] = useState(false);
+  const [themePref, setThemePref] = useState<'light' | 'dark' | 'system'>(() => {
+    if (typeof window === 'undefined') return 'system';
+    const t = window.localStorage.getItem('datascope_theme_pref');
+    return t === 'light' || t === 'dark' || t === 'system' ? t : 'system';
+  });
+  const [notifyPref, setNotifyPref] = useState<'all' | 'important' | 'none'>(() => {
+    if (typeof window === 'undefined') return 'all';
+    const n = window.localStorage.getItem('datascope_notify_pref');
+    return n === 'all' || n === 'important' || n === 'none' ? n : 'all';
+  });
 
-  React.useEffect(() => {
-    if (user?.name) {
-      setName(user.name);
-    }
-  }, [user]);
-
-  React.useEffect(() => {
-    if (prefData?.data) {
-      setDensity(prefData.data.tableDensity);
-      setPageSize(prefData.data.defaultPageSize);
-    }
-  }, [prefData]);
+  const handleSaveThemeNotificationPrefs = () => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem('datascope_theme_pref', themePref);
+    window.localStorage.setItem('datascope_notify_pref', notifyPref);
+    setPrefSaved(true);
+    setTimeout(() => setPrefSaved(false), 3000);
+  };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,11 +148,10 @@ export default function ProfilePage() {
     setPrefSaving(true);
     try {
       await updatePreferences({ tableDensity: density, defaultPageSize: pageSize }).unwrap();
-      setPrefSaved(true);
+      handleSaveThemeNotificationPrefs();
       refetchPrefs();
-      setTimeout(() => setPrefSaved(false), 3000);
     } catch {
-      alert('Failed to save display preferences');
+      alert('Failed to save preferences');
     } finally {
       setPrefSaving(false);
     }
@@ -204,16 +209,14 @@ export default function ProfilePage() {
 
   if (meLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-[60vh] flex items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <AppNavbar />
-
+    <div className="min-h-full flex flex-col">
       <main className="mx-auto max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8 w-full">
         {/* Breadcrumb / Title */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
@@ -335,7 +338,7 @@ export default function ProfilePage() {
                     type="text"
                     required
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => setNameOverride(e.target.value)}
                     className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-xs text-slate-900 outline-none focus:border-indigo-600 focus:bg-white focus:ring-2 focus:ring-indigo-600/20"
                   />
                 </div>
@@ -475,7 +478,7 @@ export default function ProfilePage() {
                     <label className="block font-semibold text-slate-700">Table Density</label>
                     <select
                       value={density}
-                      onChange={(e) => setDensity(e.target.value)}
+                      onChange={(e) => setDensityOverride(e.target.value)}
                       className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-xs text-slate-900 outline-none focus:border-indigo-600 focus:bg-white"
                     >
                       <option value="compact">Compact (Higher row density)</option>
@@ -488,7 +491,7 @@ export default function ProfilePage() {
                     <label className="block font-semibold text-slate-700">Default Page Size</label>
                     <select
                       value={pageSize}
-                      onChange={(e) => setPageSize(Number(e.target.value))}
+                      onChange={(e) => setPageSizeOverride(Number(e.target.value))}
                       className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-xs text-slate-900 outline-none focus:border-indigo-600 focus:bg-white"
                     >
                       <option value={10}>10 records per page</option>
@@ -499,10 +502,42 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
+                <div className="pt-2 border-t border-slate-100 mt-2">
+                  <h4 className="text-xs font-bold text-slate-800 mb-2 flex items-center gap-1.5">
+                    <Moon className="h-3.5 w-3.5 text-indigo-600" />
+                    Theme preferences
+                  </h4>
+                  <select
+                    value={themePref}
+                    onChange={(e) => setThemePref(e.target.value as 'light' | 'dark' | 'system')}
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-xs text-slate-900 outline-none focus:border-indigo-600 focus:bg-white"
+                  >
+                    <option value="system">System default</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                  </select>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 mt-2">
+                  <h4 className="text-xs font-bold text-slate-800 mb-2 flex items-center gap-1.5">
+                    <Bell className="h-3.5 w-3.5 text-indigo-600" />
+                    Notification preferences
+                  </h4>
+                  <select
+                    value={notifyPref}
+                    onChange={(e) => setNotifyPref(e.target.value as 'all' | 'important' | 'none')}
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-xs text-slate-900 outline-none focus:border-indigo-600 focus:bg-white"
+                  >
+                    <option value="all">All notifications</option>
+                    <option value="important">Important only</option>
+                    <option value="none">None</option>
+                  </select>
+                </div>
+
                 {prefSaved && (
                   <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-700 flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                    <span>Display preferences updated successfully!</span>
+                    <span>Preferences updated successfully!</span>
                   </div>
                 )}
 

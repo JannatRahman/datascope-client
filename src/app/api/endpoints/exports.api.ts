@@ -11,6 +11,7 @@ export interface CreateExportDto {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   selectedFields?: string[];
+  recordIds?: string[];
 }
 
 export interface ExportJobItem {

@@ -10,9 +10,9 @@ import {
   ShieldCheck,
   Settings,
   Layers,
-  Search,
+  Clock,
+  Activity,
 } from 'lucide-react';
-import { AppNavbar } from '../../components/layout/AppNavbar';
 import { useGetViewerOverviewQuery } from '../../api/endpoints/portal.api';
 import { useGetPreferencesQuery, useUpdatePreferencesMutation } from '../../api/endpoints/preferences.api';
 
@@ -23,16 +23,10 @@ export default function ViewerPage() {
 
   const [activeTab, setActiveTab] = useState<'overview' | 'views' | 'preferences'>('overview');
 
-  // Preferences form
-  const [density, setDensity] = useState('comfortable');
-  const [pageSize, setPageSize] = useState(25);
-
-  React.useEffect(() => {
-    if (prefData?.data) {
-      setDensity(prefData.data.tableDensity);
-      setPageSize(prefData.data.defaultPageSize);
-    }
-  }, [prefData]);
+  const [densityOverride, setDensityOverride] = useState<string | null>(null);
+  const [pageSizeOverride, setPageSizeOverride] = useState<number | null>(null);
+  const density = densityOverride ?? prefData?.data?.tableDensity ?? 'comfortable';
+  const pageSize = pageSizeOverride ?? prefData?.data?.defaultPageSize ?? 25;
 
   const handleSavePreferences = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,8 +40,10 @@ export default function ViewerPage() {
 
   if (overviewLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+      <div className="relative min-h-[60vh] flex items-center justify-center overflow-hidden bg-slate-950">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(16,185,129,0.25),transparent)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(148,163,184,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.05)_1px,transparent_1px)] bg-[size:48px_48px]" />
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-400/30 border-t-emerald-400" />
       </div>
     );
   }
@@ -60,41 +56,38 @@ export default function ViewerPage() {
 
   const datasets = overviewData?.data?.datasets ?? [];
   const sharedViews = overviewData?.data?.sharedViews ?? [];
+  const recentlyAccessedDatasets = overviewData?.data?.recentlyAccessedDatasets ?? [];
+  const recentActivity = overviewData?.data?.recentActivity ?? [];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <AppNavbar />
-
-      {/* Top Banner */}
-      <div className="border-b border-slate-200 bg-white shadow-2xs">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <div className="md:flex md:items-center md:justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                <Eye className="h-4 w-4 text-indigo-500" />
-                <span>Enterprise Viewer Portal</span>
+    <div className="relative min-h-full overflow-hidden bg-slate-950 text-slate-100 antialiased">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_90%_70%_at_20%_-10%,rgba(16,185,129,0.14),transparent_55%)]" />
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_50%_40%_at_100%_100%,rgba(79,70,229,0.12),transparent_50%)]" />
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(148,163,184,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.04)_1px,transparent_1px)] bg-[size:64px_64px]" />
+      <div className="relative border-b border-white/10">
+        <div className="mx-auto max-w-[1600px] px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
+          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-md border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-emerald-200/90">
+                <Eye className="h-3.5 w-3.5" />
+                Viewer portal
               </div>
-              <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-                Viewer Dashboard
-              </h1>
-              <p className="mt-1 text-xs text-slate-500">
-                Read-only access to assigned enterprise datasets, shared filter presets, and record discovery.
+              <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Workspace overview</h1>
+              <p className="max-w-2xl text-sm leading-relaxed text-slate-400">
+                Secure, read-only access to assigned datasets, curated shared views, and your browsing preferences.
               </p>
             </div>
-            <div className="mt-4 flex items-center gap-3 md:mt-0">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 border border-slate-200">
-                <ShieldCheck className="h-3.5 w-3.5 text-indigo-600" />
-                Read-Only Access
-              </span>
-            </div>
+            <span className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-medium text-emerald-200">
+              <ShieldCheck className="h-4 w-4" />
+              Read-only access
+            </span>
           </div>
 
-          {/* Navigation Tabs */}
-          <div className="mt-6 flex gap-1 border-b border-slate-200">
+          <div className="mt-8 flex gap-2 border-b border-white/10 pb-px">
             {[
-              { id: 'overview', label: 'My Assigned Datasets', icon: Database },
-              { id: 'views', label: 'Shared Saved Views', icon: Bookmark },
-              { id: 'preferences', label: 'Display Preferences', icon: Settings },
+              { id: 'overview', label: 'Assigned datasets', icon: Database },
+              { id: 'views', label: 'Shared views', icon: Bookmark },
+              { id: 'preferences', label: 'Preferences', icon: Settings },
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -102,13 +95,13 @@ export default function ViewerPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                  className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition-all ${
+                  className={`flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-medium transition-all ${
                     isActive
-                      ? 'border-indigo-600 text-indigo-600'
-                      : 'border-transparent text-slate-600 hover:text-slate-900'
+                      ? 'border-emerald-400 text-emerald-200'
+                      : 'border-transparent text-slate-400 hover:text-slate-200'
                   }`}
                 >
-                  <Icon className="h-3.5 w-3.5" />
+                  <Icon className="h-4 w-4" />
                   <span>{tab.label}</span>
                 </button>
               );
@@ -117,8 +110,7 @@ export default function ViewerPage() {
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <main className="mx-auto max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8 w-full">
+      <main className="relative mx-auto max-w-[1600px] px-4 py-8 sm:px-6 lg:px-10 lg:py-10 w-full">
         {/* TAB 1: OVERVIEW & DATASETS */}
         {activeTab === 'overview' && (
           <div className="space-y-6">
@@ -155,6 +147,56 @@ export default function ViewerPage() {
                   {summary.sharedViewsCount}
                 </div>
                 <div className="mt-1 text-[11px] text-slate-500">Created by Analysts & Admins</div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-2xs">
+                <div className="flex items-center gap-2 mb-4">
+                  <Clock className="h-4 w-4 text-indigo-600" />
+                  <h3 className="text-sm font-bold text-slate-900">Recently accessed datasets</h3>
+                </div>
+                {recentlyAccessedDatasets.length === 0 ? (
+                  <p className="text-xs text-slate-500">
+                    No recent access recorded yet. Open a dataset in the Explorer to see it here.
+                  </p>
+                ) : (
+                  <ul className="space-y-3">
+                    {recentlyAccessedDatasets.map((d) => (
+                      <li key={d.id} className="flex items-center justify-between text-xs border-b border-slate-100 pb-2 last:border-0">
+                        <div>
+                          <p className="font-semibold text-slate-900">{d.name}</p>
+                          <p className="text-slate-500">{d.category}</p>
+                        </div>
+                        <Link
+                          href={`/explorer?datasetId=${d.id}`}
+                          className="text-indigo-600 font-semibold hover:underline"
+                        >
+                          Open
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-2xs">
+                <div className="flex items-center gap-2 mb-4">
+                  <Activity className="h-4 w-4 text-indigo-600" />
+                  <h3 className="text-sm font-bold text-slate-900">Recent activity</h3>
+                </div>
+                {recentActivity.length === 0 ? (
+                  <p className="text-xs text-slate-500">No recent activity recorded for your account.</p>
+                ) : (
+                  <ul className="space-y-3 max-h-64 overflow-y-auto">
+                    {recentActivity.map((a) => (
+                      <li key={a.id} className="text-xs border-b border-slate-100 pb-2 last:border-0">
+                        <p className="font-medium text-slate-800">{a.activityType}</p>
+                        {a.description && <p className="text-slate-500 mt-0.5">{a.description}</p>}
+                        <p className="text-slate-400 mt-1">{new Date(a.createdAt).toLocaleString()}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
 
@@ -254,7 +296,7 @@ export default function ViewerPage() {
                 <label className="font-semibold text-slate-700">Default Table Density</label>
                 <select
                   value={density}
-                  onChange={(e) => setDensity(e.target.value)}
+                  onChange={(e) => setDensityOverride(e.target.value)}
                   className="mt-1 w-full rounded-lg border border-slate-300 p-2 text-slate-800 shadow-2xs focus:border-indigo-500 focus:outline-hidden"
                 >
                   <option value="comfortable">Comfortable (Standard)</option>
@@ -267,7 +309,7 @@ export default function ViewerPage() {
                 <label className="font-semibold text-slate-700">Default Page Size</label>
                 <select
                   value={pageSize}
-                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  onChange={(e) => setPageSizeOverride(Number(e.target.value))}
                   className="mt-1 w-full rounded-lg border border-slate-300 p-2 text-slate-800 shadow-2xs focus:border-indigo-500 focus:outline-hidden"
                 >
                   <option value={10}>10 records per page</option>

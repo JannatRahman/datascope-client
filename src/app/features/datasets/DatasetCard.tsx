@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Database, Columns, Shield, ArrowRight, Activity, Calendar } from 'lucide-react';
+import { Database, Columns, Shield, ArrowRight, Activity, CalendarClock } from 'lucide-react';
 import { DatasetItem } from '../../api/endpoints/datasets.api';
 
 interface DatasetCardProps {
@@ -32,11 +32,8 @@ export function DatasetCard({ dataset }: DatasetCardProps) {
   return (
     <div className="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-200 hover:border-indigo-400 hover:shadow-md">
       <div>
-        {/* Top Badges */}
         <div className="flex items-center justify-between gap-2 mb-3">
-          <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${badgeColor}`}
-          >
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${badgeColor}`}>
             {dataset.category ?? 'General'}
           </span>
           <span
@@ -49,7 +46,6 @@ export function DatasetCard({ dataset }: DatasetCardProps) {
           </span>
         </div>
 
-        {/* Dataset Title & Description */}
         <h3 className="text-lg font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
           {dataset.name}
         </h3>
@@ -57,42 +53,44 @@ export function DatasetCard({ dataset }: DatasetCardProps) {
           {dataset.description || 'Enterprise dataset configured for multi-dimensional querying.'}
         </p>
 
-        {/* Dataset Metrics */}
         <div className="mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4">
           <div className="flex items-center gap-2 text-slate-600">
             <Database className="h-4 w-4 text-indigo-500" />
             <div className="flex flex-col">
               <span className="text-xs text-slate-400">Total Records</span>
-              <span className="text-sm font-semibold text-slate-800">
-                {dataset.recordCount.toLocaleString()}
-              </span>
+              <span className="text-sm font-semibold text-slate-800">{dataset.recordCount.toLocaleString()}</span>
             </div>
           </div>
           <div className="flex items-center gap-2 text-slate-600">
             <Columns className="h-4 w-4 text-emerald-500" />
             <div className="flex flex-col">
               <span className="text-xs text-slate-400">Schema Fields</span>
-              <span className="text-sm font-semibold text-slate-800">
-                {dataset.fieldCount} fields
-              </span>
+              <span className="text-sm font-semibold text-slate-800">{dataset.fieldCount} fields</span>
             </div>
           </div>
         </div>
 
-        {/* Meta info */}
-        <div className="mt-3 flex items-center gap-4 text-xs text-slate-500">
+        <div className="mt-3 space-y-1.5 text-xs text-slate-500">
           <div className="flex items-center gap-1">
             <Activity className="h-3.5 w-3.5 text-slate-400" />
-            <span>{dataset.dataSource ?? 'PostgreSQL'}</span>
+            <span>Source: {dataset.dataSource ?? 'PostgreSQL'}</span>
           </div>
           <div className="flex items-center gap-1">
-            <Calendar className="h-3.5 w-3.5 text-slate-400" />
-            <span>{new Date(dataset.createdAt).toLocaleDateString()}</span>
+            <CalendarClock className="h-3.5 w-3.5 text-slate-400" />
+            <span>Created: {new Date(dataset.createdAt).toLocaleDateString()}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <CalendarClock className="h-3.5 w-3.5 text-slate-400" />
+            <span>Updated: {new Date(dataset.updatedAt).toLocaleDateString()}</span>
+          </div>
+          <div className="pt-1">
+            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 font-medium text-slate-600">
+              Access status: {dataset.status}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Action Footer */}
       <div className="mt-6 border-t border-slate-100 pt-4">
         <Link
           href={`/explorer?datasetId=${dataset.id}`}

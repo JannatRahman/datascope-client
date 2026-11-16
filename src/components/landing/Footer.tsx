@@ -1,6 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useSyncExternalStore } from "react";
+
+const subscribeToYear = () => () => {};
+const getClientYear = () => new Date().getFullYear();
+const getServerYear = () => 2026;
 
 const footerLinks = {
   Platform: [
@@ -51,11 +55,7 @@ const techStack = [
 ];
 
 export default function Footer() {
-  const [currentYear, setCurrentYear] = useState(2026);
-
-  useEffect(() => {
-    setCurrentYear(new Date().getFullYear());
-  }, []);
+  const currentYear = useSyncExternalStore(subscribeToYear, getClientYear, getServerYear);
 
   return (
     <footer className="bg-[#0B1120] border-t border-[#1E293B]">

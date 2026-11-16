@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react';
 import { AppNavbar } from '../components/layout/AppNavbar';
+import { ClientOnly } from '../components/ClientOnly';
 import { DataExplorerView } from '../features/explorer/DataExplorerView';
 
 export default function ExplorerPage() {
@@ -19,7 +20,9 @@ export default function ExplorerPage() {
             </div>
           }
         >
-          <DataExplorerView />
+          <ClientOnly>
+            <DataExplorerView />
+          </ClientOnly>
         </Suspense>
       </main>
     </div>

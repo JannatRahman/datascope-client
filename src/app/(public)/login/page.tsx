@@ -114,7 +114,7 @@ export default function LoginPage() {
         );
         setGoogleLoading(false);
       }
-    } catch (err: unknown) {
+    } catch {
       setError(
         "Google Sign-In error: Please verify that http://localhost:3000/api/auth/callback/google is added to Authorized redirect URIs in Google Cloud Console."
       );
@@ -410,9 +410,9 @@ export default function LoginPage() {
                 <label htmlFor="password" className="text-xs font-semibold text-slate-700">
                   Password
                 </label>
-                <span className="text-xs font-medium text-indigo-600 hover:underline cursor-pointer">
+                <Link href="/forgot-password" className="text-xs font-medium text-indigo-600 hover:underline">
                   Forgot Password?
-                </span>
+                </Link>
               </div>
               <div className="relative">
                 <input

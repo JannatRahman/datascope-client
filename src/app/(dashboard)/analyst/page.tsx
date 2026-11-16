@@ -11,27 +11,18 @@ import {
   ArrowRight,
   Layers,
   Zap,
-  Sliders,
   Settings,
   ShieldAlert,
   Download,
   Trash2,
   Share2,
   Check,
-  CheckCircle,
-  AlertCircle,
-  ExternalLink,
-  RotateCcw,
   Home,
   Sparkles,
   Calendar,
-  Users,
   Activity,
-  FileSpreadsheet,
   ChevronRight,
-  TrendingUp,
 } from 'lucide-react';
-import { AppNavbar } from '../../components/layout/AppNavbar';
 import { useGetAnalystOverviewQuery } from '../../api/endpoints/portal.api';
 import { useGetPreferencesQuery, useUpdatePreferencesMutation } from '../../api/endpoints/preferences.api';
 import { useGetMeQuery } from '../../api/endpoints/auth.api';
@@ -45,7 +36,9 @@ import {
   useDeleteSavedViewMutation,
   useShareSavedViewMutation,
 } from '../../api/endpoints/saved-views.api';
-import { useGetExportJobsQuery } from '../../api/endpoints/exports.api';
+import { useGetExportJobsQuery, type ExportJobItem } from '../../api/endpoints/exports.api';
+import { type SearchHistoryItem } from '../../api/endpoints/search.api';
+import { type SavedViewItem } from '../../api/endpoints/saved-views.api';
 import { AnalyticsCharts } from '../../components/charts/AnalyticsCharts';
 
 export default function AnalystPage() {
@@ -72,22 +65,15 @@ export default function AnalystPage() {
 
   const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'history' | 'views' | 'exports' | 'preferences'>('overview');
 
-  // Preferences form
-  const [density, setDensity] = useState('comfortable');
-  const [pageSize, setPageSize] = useState(25);
+  const [densityOverride, setDensityOverride] = useState<string | null>(null);
+  const [pageSizeOverride, setPageSizeOverride] = useState<number | null>(null);
+  const density = densityOverride ?? prefData?.data?.tableDensity ?? 'comfortable';
+  const pageSize = pageSizeOverride ?? prefData?.data?.defaultPageSize ?? 25;
   const [prefSaved, setPrefSaved] = useState(false);
 
-  // Share modal state
   const [shareModalViewId, setShareModalViewId] = useState<string | null>(null);
   const [shareTargetUserId, setShareTargetUserId] = useState('');
   const [shareSuccess, setShareSuccess] = useState(false);
-
-  React.useEffect(() => {
-    if (prefData?.data) {
-      setDensity(prefData.data.tableDensity);
-      setPageSize(prefData.data.defaultPageSize);
-    }
-  }, [prefData]);
 
   const handleSavePreferences = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,10 +104,12 @@ export default function AnalystPage() {
 
   if (meLoading || overviewLoading) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-9 w-9 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-          <span className="text-xs font-semibold text-slate-500">Loading Analyst Workspace…</span>
+      <div className="relative min-h-[60vh] flex items-center justify-center overflow-hidden bg-slate-950">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(99,102,241,0.35),transparent)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(148,163,184,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.06)_1px,transparent_1px)] bg-[size:48px_48px]" />
+        <div className="relative flex flex-col items-center gap-4">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-indigo-400/30 border-t-indigo-400" />
+          <span className="text-xs font-medium tracking-widest text-slate-400 uppercase">Initializing workspace</span>
         </div>
       </div>
     );
@@ -129,30 +117,21 @@ export default function AnalystPage() {
 
   if (!isAnalyst) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
-        <AppNavbar />
-        <div className="flex-1 flex items-center justify-center p-4">
-          <div className="max-w-md rounded-2xl border border-rose-200 bg-white p-8 text-center shadow-lg">
-            <ShieldAlert className="mx-auto h-12 w-12 text-rose-500" />
-            <h2 className="mt-4 text-xl font-extrabold text-slate-900">Analyst Access Required</h2>
-            <p className="mt-2 text-xs text-slate-600">
-              Your account currently has Viewer privileges. Please contact an administrator to request Analyst permissions.
-            </p>
-            <div className="mt-6 flex justify-center gap-3">
-              <Link
-                href="/"
-                className="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200 transition-colors"
-              >
-                <Home className="h-3.5 w-3.5" />
-                <span>Return Home</span>
-              </Link>
-              <Link
-                href="/viewer"
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:from-blue-700 hover:to-indigo-700"
-              >
-                Go to Viewer Portal
-              </Link>
-            </div>
+      <div className="relative min-h-[60vh] flex items-center justify-center p-4 bg-slate-950">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_0%,rgba(244,63,94,0.12),transparent)]" />
+        <div className="relative max-w-md rounded-2xl border border-white/10 bg-slate-900/80 p-8 text-center shadow-2xl backdrop-blur-xl">
+          <ShieldAlert className="mx-auto h-12 w-12 text-rose-400" />
+          <h2 className="mt-4 text-xl font-semibold tracking-tight text-white">Analyst Access Required</h2>
+          <p className="mt-2 text-sm leading-relaxed text-slate-400">
+            Your account currently has Viewer privileges. Request elevated access from an administrator.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <Link href="/" className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium text-slate-200 hover:bg-white/10">
+              <Home className="h-3.5 w-3.5" /> Return home
+            </Link>
+            <Link href="/viewer" className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-500">
+              Viewer portal
+            </Link>
           </div>
         </div>
       </div>
@@ -173,45 +152,39 @@ export default function AnalystPage() {
   const exportJobsList = exportJobsData?.data ?? [];
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col antialiased text-slate-800">
-      <AppNavbar />
-
-      <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* ─── TOP STATUS & BREADCRUMB BAR (Inspired by Reference UI) ─── */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-5 border-b border-slate-200/70">
-          <div className="flex items-center gap-3">
-            {/* Breadcrumb with Home Link */}
-            <div className="flex items-center gap-1.5 text-xs text-slate-500">
-              <Link href="/" className="flex items-center gap-1 font-medium text-slate-500 hover:text-blue-600 transition-colors">
-                <Home className="h-3.5 w-3.5" />
-                <span>Home</span>
-              </Link>
-              <ChevronRight className="h-3 w-3 text-slate-400" />
-              <span className="font-bold text-slate-800">Analyst Studio</span>
+    <div className="relative min-h-full overflow-hidden bg-slate-950 text-slate-100 antialiased">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_100%_80%_at_80%_-10%,rgba(79,70,229,0.18),transparent_55%)]" />
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_60%_50%_at_0%_100%,rgba(59,130,246,0.12),transparent_50%)]" />
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(148,163,184,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.04)_1px,transparent_1px)] bg-[size:64px_64px]" />
+      <main className="relative mx-auto w-full max-w-[1600px] px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-white/10 pb-6">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.2em] text-indigo-300/90">
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-indigo-400/30 bg-indigo-500/10 px-2.5 py-1">
+                <Sparkles className="h-3.5 w-3.5" />
+                DataScope Intelligence
+              </span>
+              <span className="text-slate-500">/</span>
+              <span className="text-slate-400">Analyst workspace</span>
             </div>
-
-            {/* Date Badge */}
-            <div className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-slate-700 shadow-xs border border-slate-200">
-              <Calendar className="h-3 w-3 text-blue-600" />
-              <span>Today: {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-            </div>
-
-            {/* Team Cluster */}
-            <div className="hidden md:flex items-center -space-x-1.5">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white ring-2 ring-white">DA</div>
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white ring-2 ring-white">VW</div>
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white ring-2 ring-white">AD</div>
-              <span className="pl-2 text-[11px] font-medium text-slate-400">Team Sync</span>
+            <div>
+              <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Analyst Studio</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
+                Query telemetry, governed datasets, saved perspectives, and streaming exports — built for high-confidence analysis.
+              </p>
             </div>
           </div>
-
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="hidden items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-slate-400 sm:flex">
+              <Calendar className="h-3.5 w-3.5 text-indigo-400" />
+              {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            </div>
             <Link
               href="/explorer"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-4 py-2.5 text-xs font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:bg-indigo-400"
             >
-              <Database className="h-3.5 w-3.5" />
-              <span>Launch Data Explorer</span>
+              <Database className="h-4 w-4" />
+              Open explorer
             </Link>
           </div>
         </div>
@@ -232,7 +205,7 @@ export default function AnalystPage() {
           </div>
 
           {/* View Mode Switcher Pills (Matching the image's Image / List / Calendar pill style) */}
-          <div className="flex items-center gap-1 rounded-2xl bg-white p-1.5 border border-slate-200 shadow-xs overflow-x-auto">
+          <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/[0.04] p-1 backdrop-blur-sm overflow-x-auto">
             {[
               { id: 'overview', label: 'Overview', icon: Layers },
               { id: 'analytics', label: 'Live Analytics', icon: LineChart },
@@ -247,11 +220,11 @@ export default function AnalystPage() {
                 <button
                   key={tab.id}
                   type="button"
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                  onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all whitespace-nowrap ${
                     isActive
-                      ? 'bg-blue-600 text-white shadow-xs font-bold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                      ? 'bg-indigo-500/90 text-white shadow-lg shadow-indigo-500/20'
+                      : 'text-slate-400 hover:text-slate-100 hover:bg-white/5'
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
@@ -382,7 +355,7 @@ export default function AnalystPage() {
                     No saved views yet. Save a filter view in Data Explorer.
                   </div>
                 ) : (
-                  savedViewsList.slice(0, 2).map((view: any) => (
+                  savedViewsList.slice(0, 2).map((view: SavedViewItem) => (
                     <div key={view.id} className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs hover:shadow-md transition-all">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-slate-900 truncate">{view.name}</span>
@@ -420,7 +393,7 @@ export default function AnalystPage() {
                     No export jobs scheduled yet.
                   </div>
                 ) : (
-                  exportJobsList.slice(0, 2).map((job: any) => (
+                  exportJobsList.slice(0, 2).map((job: ExportJobItem) => (
                     <div key={job.id} className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs hover:shadow-md transition-all">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-slate-900 uppercase">{job.format} Export</span>
@@ -434,7 +407,19 @@ export default function AnalystPage() {
                       <div className="mt-3">
                         <div className="flex justify-between text-[10px] text-slate-400 font-medium mb-1">
                           <span>Export Progress</span>
-                          <span className="text-purple-600 font-bold">{job.progress || 100}%</span>
+                          <span className="text-purple-600 font-bold">
+                            {job.totalRecords
+                              ? Math.min(
+                                  100,
+                                  Math.round(
+                                    ((job.processedRecords ?? 0) / job.totalRecords) * 100,
+                                  ),
+                                )
+                              : job.status === 'completed'
+                                ? 100
+                                : 0}
+                            %
+                          </span>
                         </div>
                         <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
                           <div className="h-full bg-purple-600 rounded-full w-full" />
@@ -459,7 +444,7 @@ export default function AnalystPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {datasets.map((ds: any) => (
+                {datasets.map((ds) => (
                   <div key={ds.id} className="rounded-xl border border-slate-200/70 p-4 hover:border-blue-300 hover:shadow-sm transition-all bg-slate-50/40">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-slate-900 truncate">{ds.name}</span>
@@ -469,7 +454,7 @@ export default function AnalystPage() {
                     </div>
                     <p className="mt-1 text-xs text-slate-500 line-clamp-2">{ds.description || 'Enterprise domain records'}</p>
                     <div className="mt-3 flex items-center justify-between pt-2 border-t border-slate-200/60 text-[11px]">
-                      <span className="text-slate-400 font-mono text-[10px]">{ds.tableName}</span>
+                      <span className="text-slate-400 font-mono text-[10px]">{ds.category}</span>
                       <Link href={`/explorer?dataset=${ds.id}`} className="font-semibold text-blue-600 hover:underline">
                         Query Dataset
                       </Link>
@@ -514,43 +499,58 @@ export default function AnalystPage() {
             </div>
 
             <div className="mt-4 divide-y divide-slate-100">
-              {searchHistoryList.length === 0 ? (
-                <div className="py-12 text-center text-xs text-slate-400">
-                  <Clock className="mx-auto h-8 w-8 text-slate-300 mb-2" />
-                  No search history tracked yet. Searches in Data Explorer will appear here.
-                </div>
-              ) : (
-                searchHistoryList.map((item: any) => (
-                  <div key={item.id} className="py-3 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 shrink-0">
-                        <Search className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-900 truncate">"{item.query}"</p>
-                        <p className="text-[11px] text-slate-400">
-                          Dataset: {item.datasetName || 'All'} · {new Date(item.createdAt).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/explorer?search=${encodeURIComponent(item.query)}`}
-                        className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200 transition-colors"
-                      >
-                        Re-run
-                      </Link>
-                      <button
-                        onClick={() => deleteSearch(item.id)}
-                        className="p-1 text-slate-400 hover:text-rose-600 cursor-pointer"
-                        title="Delete entry"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
+                {searchHistoryList.length === 0 ? (
+                  <div className="py-12 text-center text-xs text-slate-400">
+                    <Clock className="mx-auto h-8 w-8 text-slate-300 mb-2" />
+                    No search history tracked yet. Searches in Data Explorer will appear here.
                   </div>
-                ))
-              )}
+                ) : (
+                  searchHistoryList.map((item: SearchHistoryItem) => {
+                    const filterSummary =
+                      Array.isArray(item.filters) && item.filters.length > 0
+                        ? `${item.filters.length} filter(s)`
+                        : typeof item.filters === 'object' && item.filters && Object.keys(item.filters).length > 0
+                          ? `${Object.keys(item.filters as Record<string, unknown>).length} filter(s)`
+                          : 'No filters';
+                    const sortSummary = Array.isArray(item.sortConfig) && item.sortConfig.length > 0 ? 'Sorted' : 'Default sort';
+                    return (
+                      <div key={item.id} className="py-3 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 shrink-0">
+                            <Search className="h-4 w-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-slate-900 truncate">
+                              &ldquo;{item.searchQuery || '(no text query)'}&rdquo;
+                            </p>
+                            <p className="text-[11px] text-slate-400">
+                              Dataset: {item.datasetName || 'All'} · {new Date(item.searchedAt).toLocaleString()}
+                            </p>
+                            <p className="text-[11px] text-slate-500 mt-0.5">
+                              Conditions: {filterSummary} · {sortSummary}
+                              {typeof item.resultCount === 'number' ? ` · ${item.resultCount} results` : ''}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/explorer?search=${encodeURIComponent(item.searchQuery || '')}${item.datasetId ? `&datasetId=${item.datasetId}` : ''}`}
+                            className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200 transition-colors"
+                          >
+                            Re-run
+                          </Link>
+                          <button
+                            onClick={() => deleteSearch(item.id)}
+                            className="p-1 text-slate-400 hover:text-rose-600 cursor-pointer"
+                            title="Delete entry"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
             </div>
           </div>
         )}
@@ -578,7 +578,7 @@ export default function AnalystPage() {
                   No saved views found. Create one from the Data Explorer table controls.
                 </div>
               ) : (
-                savedViewsList.map((view: any) => (
+                savedViewsList.map((view: SavedViewItem) => (
                   <div key={view.id} className="rounded-xl border border-slate-200 p-4 bg-slate-50/50 flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between">
@@ -687,7 +687,7 @@ export default function AnalystPage() {
                   No export jobs executed yet. Trigger an export from the Data Explorer.
                 </div>
               ) : (
-                exportJobsList.map((job: any) => {
+                exportJobsList.map((job: ExportJobItem) => {
                   const isDone = job.status === 'completed';
                   return (
                     <div
@@ -703,7 +703,7 @@ export default function AnalystPage() {
                             {job.format.toUpperCase()} Export #{job.id.substring(0, 8)}
                           </p>
                           <p className="text-[11px] text-slate-500">
-                            Dataset: {job.datasetId.substring(0, 8)}… · Created: {new Date(job.createdAt).toLocaleString()}
+                            Dataset: {job.datasetId.substring(0, 8)}… · Created: {new Date(job.requestedAt).toLocaleString()}
                           </p>
                         </div>
                       </div>
@@ -753,7 +753,7 @@ export default function AnalystPage() {
                     <button
                       key={d}
                       type="button"
-                      onClick={() => setDensity(d)}
+                      onClick={() => setDensityOverride(d)}
                       className={`rounded-xl border py-2 text-xs font-semibold capitalize transition-all cursor-pointer ${
                         density === d
                           ? 'border-blue-600 bg-blue-50 text-blue-700 font-bold'
@@ -770,7 +770,7 @@ export default function AnalystPage() {
                 <label className="text-xs font-bold text-slate-700">Default Records Per Page</label>
                 <select
                   value={pageSize}
-                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  onChange={(e) => setPageSizeOverride(Number(e.target.value))}
                   className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value={10}>10 rows</option>

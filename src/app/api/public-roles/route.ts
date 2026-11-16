@@ -15,7 +15,7 @@ export async function GET() {
       .where(inArray(schema.roles.name, ["Viewer", "Data Analyst"]));
 
     return NextResponse.json({ success: true, roles });
-  } catch (error) {
+  } catch {
     // Safe hardcoded seed fallback if database query fails
     return NextResponse.json({
       success: true,

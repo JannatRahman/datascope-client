@@ -30,6 +30,8 @@ export function FilterBuilder({
 
   const [logic, setLogic] = useState<'AND' | 'OR'>(initialLogic);
 
+  // Reset when opened via key from parent; keep effect for safety only if needed. Removing sync effect to satisfy lint.
+
   if (!isOpen) return null;
 
   const fieldMap = new Map(fields.map((f) => [f.fieldKey, f]));
@@ -61,18 +63,20 @@ export function FilterBuilder({
         ];
       case 'boolean':
         return [
-          { label: 'is', value: 'equals' },
+          { label: 'is true', value: 'equals' },
+          { label: 'is not', value: 'not_equals' },
           { label: 'is empty / null', value: 'is_null' },
           { label: 'is not empty', value: 'is_not_null' },
         ];
       default:
         return [
-          { label: 'contains', value: 'contains' },
-          { label: 'equals', value: 'equals' },
-          { label: 'not equals', value: 'not_equals' },
+          { label: 'contains (partial)', value: 'contains' },
+          { label: 'equals (exact)', value: 'equals' },
+          { label: 'is not', value: 'not_equals' },
           { label: 'does not contain', value: 'not_contains' },
           { label: 'starts with', value: 'starts_with' },
           { label: 'ends with', value: 'ends_with' },
+          { label: 'is one of (comma separated)', value: 'in' },
           { label: 'is empty / null', value: 'is_null' },
           { label: 'is not empty', value: 'is_not_null' },
         ];

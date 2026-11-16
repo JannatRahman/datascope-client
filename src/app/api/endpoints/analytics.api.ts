@@ -35,10 +35,24 @@ export interface AnalyticsOverview {
     shipmentStatuses: StatusCountItem[];
     employeeStatuses: StatusCountItem[];
   };
-  searchActivity: SearchActivityItem;
+  searchActivity: SearchActivityItem & { frequentFilters?: Array<{ key: string; value: string; count: number }> };
   queryPerformance: QueryPerformanceMetrics;
   activityDistribution: Array<{ type: string; count: number }>;
+  growthTrends?: Array<{ month: string; users: number; datasets: number; records: number }>;
   timestamp: string;
+}
+
+export interface GrowthTrendItem {
+  month: string;
+  users: number;
+  datasets: number;
+  records: number;
+}
+
+export interface FrequentFilterItem {
+  key: string;
+  value: string;
+  count: number;
 }
 
 export const analyticsApi = baseApi.injectEndpoints({
@@ -52,6 +66,12 @@ export const analyticsApi = baseApi.injectEndpoints({
     getPerformanceAnalytics: builder.query<{ success: boolean; data: QueryPerformanceMetrics }, void>({
       query: () => '/api/v1/analytics/performance',
     }),
+    getGrowthTrends: builder.query<{ success: boolean; data: GrowthTrendItem[] }, void>({
+      query: () => '/api/v1/analytics/growth',
+    }),
+    getFrequentFilters: builder.query<{ success: boolean; data: FrequentFilterItem[] }, void>({
+      query: () => '/api/v1/analytics/filters',
+    }),
   }),
   overrideExisting: true,
 });
@@ -60,4 +80,6 @@ export const {
   useGetAnalyticsOverviewQuery,
   useGetDatasetAnalyticsQuery,
   useGetPerformanceAnalyticsQuery,
+  useGetGrowthTrendsQuery,
+  useGetFrequentFiltersQuery,
 } = analyticsApi;

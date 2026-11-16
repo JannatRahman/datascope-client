@@ -2,18 +2,11 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import {
-  X,
-  SlidersHorizontal,
-  Layers,
-  AlertTriangle,
-  RotateCcw,
-} from 'lucide-react';
+import { X, AlertTriangle, RotateCcw } from 'lucide-react';
 
 import {
   useGetDatasetsQuery,
   useGetDatasetFieldsQuery,
-  DatasetItem,
 } from '../../api/endpoints/datasets.api';
 import {
   useGetRecordsQuery,
@@ -21,6 +14,7 @@ import {
   RecordItem,
 } from '../../api/endpoints/records.api';
 import { useGetMeQuery } from '../../api/endpoints/auth.api';
+import { useCreateSavedViewMutation } from '../../api/endpoints/saved-views.api';
 
 import { ExplorerHeader } from './ExplorerHeader';
 import { DataTable } from './DataTable';
@@ -42,7 +36,7 @@ export function DataExplorerView() {
     isError: datasetsError,
   } = useGetDatasetsQuery();
 
-  const datasets = datasetsResponse?.data ?? [];
+  const datasets = useMemo(() => datasetsResponse?.data ?? [], [datasetsResponse]);
 
   // 2. Derive current dataset ID from URL or pick first available
   const urlDatasetId = searchParams.get('datasetId');
@@ -64,7 +58,7 @@ export function DataExplorerView() {
     { skip: !currentDatasetId },
   );
 
-  const fields = fieldsResponse?.data ?? [];
+  const fields = useMemo(() => fieldsResponse?.data ?? [], [fieldsResponse]);
 
   // 4. URL query state parsing
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1);
@@ -89,10 +83,6 @@ export function DataExplorerView() {
 
   // 5. Local Search input with debouncing
   const [searchInput, setSearchInput] = useState(qParam);
-
-  useEffect(() => {
-    setSearchInput(qParam);
-  }, [qParam]);
 
   // Helper to update URL query params cleanly
   const updateQueryParams = useCallback(
@@ -124,46 +114,61 @@ export function DataExplorerView() {
   }, [searchInput, qParam, updateQueryParams]);
 
   // 6. Column Visibility State
-  const [visibleColumns, setVisibleColumns] = useState<Set<string>>(new Set());
+  const [columnState, setColumnState] = useState<{
+    datasetId: string;
+    keys: Set<string>;
+  } | null>(null);
 
-  // Initialize visible columns when fields load
-  useEffect(() => {
-    if (fields.length > 0) {
-      setVisibleColumns(new Set(fields.map((f) => f.fieldKey)));
-    }
-  }, [fields, currentDatasetId]);
+  const defaultColumns = new Set(fields.map((f) => f.fieldKey));
+  const visibleColumns =
+    columnState?.datasetId === currentDatasetId ? columnState.keys : defaultColumns;
 
   const handleToggleColumn = (fieldKey: string) => {
-    setVisibleColumns((prev) => {
-      const next = new Set(prev);
+    setColumnState((prev) => {
+      const next =
+        prev?.datasetId === currentDatasetId
+          ? new Set(prev.keys)
+          : new Set(fields.map((f) => f.fieldKey));
       if (next.has(fieldKey)) {
         if (next.size > 1) next.delete(fieldKey); // Prevent hiding all
       } else {
         next.add(fieldKey);
       }
-      return next;
+      return { datasetId: currentDatasetId, keys: next };
     });
   };
 
   const handleSelectAllColumns = () => {
-    setVisibleColumns(new Set(fields.map((f) => f.fieldKey)));
+    setColumnState({
+      datasetId: currentDatasetId,
+      keys: new Set(fields.map((f) => f.fieldKey)),
+    });
   };
 
   const handleResetDefaultColumns = () => {
-    setVisibleColumns(new Set(fields.map((f) => f.fieldKey)));
+    setColumnState({
+      datasetId: currentDatasetId,
+      keys: new Set(fields.map((f) => f.fieldKey)),
+    });
   };
 
   // 7. Modals & Drawer State
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState<RecordItem | null>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isSaveViewOpen, setIsSaveViewOpen] = useState(false);
+  const [saveViewName, setSaveViewName] = useState('');
+  const [saveViewDesc, setSaveViewDesc] = useState('');
+  const [createSavedView, { isLoading: isSavingView }] = useCreateSavedViewMutation();
+  const [manualSelectedRecord, setManualSelectedRecord] = useState<RecordItem | null>(null);
+  const [drawerOpenOverride, setDrawerOpenOverride] = useState<boolean | null>(null);
+  const [selectedRecordIds, setSelectedRecordIds] = useState<Set<string>>(new Set());
 
   // Determine if user can export
   const { data: meData } = useGetMeQuery();
   const userRole = meData?.user?.roleName ?? '';
   const canExport = userRole === 'Administrator' || userRole === 'Data Analyst';
+  const canSaveView = userRole === 'Administrator' || userRole === 'Data Analyst';
 
   // 8. Fetch live records from API
   const {
@@ -185,7 +190,7 @@ export function DataExplorerView() {
     { skip: !currentDatasetId },
   );
 
-  const records = recordsResponse?.data ?? [];
+  const records = useMemo(() => recordsResponse?.data ?? [], [recordsResponse]);
   const meta = recordsResponse?.meta ?? {
     page: 1,
     pageSize: 25,
@@ -193,17 +198,19 @@ export function DataExplorerView() {
     totalPages: 1,
   };
 
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSelectedRecordIds(new Set());
+  }, [currentDatasetId, page, pageSize, qParam, sortBy, sortOrder, filterLogic, searchParams]);
+
   // Check if URL has a recordId to open drawer directly
   const urlRecordId = searchParams.get('recordId');
-  useEffect(() => {
-    if (urlRecordId && records.length > 0) {
-      const match = records.find((r) => r.id === urlRecordId);
-      if (match) {
-        setSelectedRecord(match);
-        setIsDrawerOpen(true);
-      }
-    }
-  }, [urlRecordId, records]);
+  const urlSelectedRecord = useMemo(
+    () => (urlRecordId ? records.find((r) => r.id === urlRecordId) ?? null : null),
+    [urlRecordId, records],
+  );
+  const selectedRecord = manualSelectedRecord ?? urlSelectedRecord;
+  const isDrawerOpen = drawerOpenOverride ?? Boolean(urlSelectedRecord);
 
   // 9. Handlers
   const handleSelectDataset = (newId: string) => {
@@ -256,14 +263,37 @@ export function DataExplorerView() {
     setSearchInput('');
   };
 
+  const handleSaveViewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentDatasetId || !saveViewName.trim()) return;
+    try {
+      await createSavedView({
+        name: saveViewName.trim(),
+        description: saveViewDesc.trim() || undefined,
+        datasetId: currentDatasetId,
+        searchQuery: qParam || '',
+        filters: activeFilters,
+        sortConfig: sortBy ? { field: sortBy, order: sortOrder || 'asc' } : null,
+        visibleColumns: Array.from(visibleColumns),
+        isShared: false,
+      }).unwrap();
+      setIsSaveViewOpen(false);
+      setSaveViewName('');
+      setSaveViewDesc('');
+      alert('Saved view created.');
+    } catch {
+      alert('Failed to save view.');
+    }
+  };
+
   const handleRowClick = (record: RecordItem) => {
-    setSelectedRecord(record);
-    setIsDrawerOpen(true);
+    setManualSelectedRecord(record);
+    setDrawerOpenOverride(true);
   };
 
   const handleDrawerClose = () => {
-    setIsDrawerOpen(false);
-    setSelectedRecord(null);
+    setDrawerOpenOverride(false);
+    setManualSelectedRecord(null);
     if (urlRecordId) {
       updateQueryParams({ recordId: null });
     }
@@ -273,7 +303,9 @@ export function DataExplorerView() {
     relatedDatasetId: string,
     relatedRecordId: string,
   ) => {
-    setIsDrawerOpen(false);
+    setManualSelectedRecord(null);
+    setDrawerOpenOverride(null);
+    setSearchInput('');
     updateQueryParams({
       datasetId: relatedDatasetId,
       recordId: relatedRecordId,
@@ -282,6 +314,21 @@ export function DataExplorerView() {
       filters: null,
     });
   };
+
+  const handleToggleRecordSelected = (recordId: string) => {
+    setSelectedRecordIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(recordId)) next.delete(recordId);
+      else next.add(recordId);
+      return next;
+    });
+  };
+
+  const handleSelectAllOnPage = () => {
+    setSelectedRecordIds(new Set(records.map((r) => r.id)));
+  };
+
+  const handleClearSelection = () => setSelectedRecordIds(new Set());
 
   if (datasetsLoading) {
     return (
@@ -327,6 +374,8 @@ export function DataExplorerView() {
         onOpenColumnModal={() => setIsColumnModalOpen(true)}
         onOpenExportModal={() => setIsExportModalOpen(true)}
         canExport={canExport}
+        canSaveView={canSaveView}
+        onSaveView={() => setIsSaveViewOpen(true)}
       />
 
       {/* Active Filter Chips Bar */}
@@ -382,6 +431,7 @@ export function DataExplorerView() {
 
       {/* Live Data Explorer Table */}
       <DataTable
+        datasetId={currentDatasetId}
         fields={fields}
         visibleColumns={visibleColumns}
         records={records}
@@ -391,6 +441,11 @@ export function DataExplorerView() {
         onSelectRecord={handleRowClick}
         selectedRecordId={selectedRecord?.id}
         isLoading={recordsLoading || fieldsLoading}
+        selectedRecordIds={selectedRecordIds}
+        onToggleRecordSelected={handleToggleRecordSelected}
+        onSelectAllOnPage={handleSelectAllOnPage}
+        onClearSelection={handleClearSelection}
+        searchTerm={qParam}
       />
 
       {/* Pagination Controls */}
@@ -447,7 +502,55 @@ export function DataExplorerView() {
           currentFilterLogic={filterLogic}
           currentSortBy={sortBy}
           currentSortOrder={sortOrder}
+          selectedRecordIds={Array.from(selectedRecordIds)}
         />
+      )}
+
+      {isSaveViewOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200">
+            <h3 className="text-sm font-bold text-slate-900">Save current view</h3>
+            <p className="mt-1 text-xs text-slate-500">
+              Saves search, filters, sort, and visible columns for this dataset.
+            </p>
+            <form onSubmit={handleSaveViewSubmit} className="mt-4 space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-slate-700">Name</label>
+                <input
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs"
+                  value={saveViewName}
+                  onChange={(e) => setSaveViewName(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-700">Description (optional)</label>
+                <textarea
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs"
+                  rows={2}
+                  value={saveViewDesc}
+                  onChange={(e) => setSaveViewDesc(e.target.value)}
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsSaveViewOpen(false)}
+                  className="rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingView}
+                  className="rounded-xl bg-indigo-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  {isSavingView ? 'Saving…' : 'Save view'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

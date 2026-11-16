@@ -11,6 +11,7 @@ export interface AnalystOverviewData {
   datasets: {
     id: string;
     name: string;
+    description?: string | null;
     category: string;
     recordCount: number;
     fieldCount: number;
@@ -59,6 +60,23 @@ export interface ViewerOverviewData {
     datasetName: string;
     datasetId: string;
     ownerName: string;
+  }[];
+  recentlyAccessedDatasets?: {
+    id: string;
+    name: string;
+    description?: string | null;
+    category: string;
+    recordCount?: number;
+    fieldCount?: number;
+    lastAccessedAt: string;
+  }[];
+  recentActivity?: {
+    id: string;
+    activityType: string;
+    description?: string | null;
+    entityType?: string | null;
+    entityId?: string | null;
+    createdAt: string;
   }[];
 }
 

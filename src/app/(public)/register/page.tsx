@@ -2,21 +2,17 @@
 
 import { useState, type FormEvent, useEffect } from "react";
 import Link from "next/link";
-import { signUp, signIn, useSession } from "@/lib/auth-client";
+import { signUp, signIn } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import {
   Eye,
   EyeOff,
   LineChart,
   Eye as ViewerIcon,
-  Shield,
   CheckCircle2,
   ArrowRight,
   Sparkles,
   Database,
-  Layers,
-  FileSpreadsheet,
-  Zap,
   Play,
   Pause,
   Home,
@@ -79,7 +75,6 @@ const DEMO_STEPS: DemoStep[] = [
 ];
 
 export default function RegisterPage() {
-  const { data: session } = useSession();
   const router = useRouter();
 
   // Role selection
@@ -130,7 +125,7 @@ export default function RegisterPage() {
         );
         setGoogleLoading(false);
       }
-    } catch (err: unknown) {
+    } catch {
       setError(
         "Google sign-up error: Ensure http://localhost:3000/api/auth/callback/google is authorized in Google Cloud Console."
       );

@@ -54,6 +54,19 @@ export interface PaginatedRecordsResponse {
   };
 }
 
+export interface RecordHistoryItem {
+  id: string;
+  recordId: string;
+  datasetId: string;
+  changedBy: string | null;
+  changedByName: string | null;
+  changeType: 'created' | 'updated' | 'deleted';
+  previousData: Record<string, unknown> | null;
+  newData: Record<string, unknown> | null;
+  changeDescription: string | null;
+  changedAt: string;
+}
+
 export interface RecordRelationshipItem {
   id: string;
   relationshipType: string;
@@ -107,6 +120,16 @@ export const recordsApi = baseApi.injectEndpoints({
         { type: 'Records', id: recordId },
       ],
     }),
+    getRecordHistory: builder.query<
+      { success: boolean; data: RecordHistoryItem[] },
+      { datasetId: string; recordId: string }
+    >({
+      query: ({ datasetId, recordId }) =>
+        `/api/v1/datasets/${datasetId}/records/${recordId}/history`,
+      providesTags: (_result, _error, { recordId }) => [
+        { type: 'Records', id: `${recordId}-history` },
+      ],
+    }),
     getRecordRelationships: builder.query<
       { success: boolean; data: RecordRelationshipItem[] },
       { datasetId: string; recordId: string }
@@ -124,5 +147,6 @@ export const recordsApi = baseApi.injectEndpoints({
 export const {
   useGetRecordsQuery,
   useGetRecordByIdQuery,
+  useGetRecordHistoryQuery,
   useGetRecordRelationshipsQuery,
 } = recordsApi;

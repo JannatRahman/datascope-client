@@ -1,10 +1,19 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 
+const trustedOrigins = [
+  process.env.BETTER_AUTH_URL,
+  process.env.NEXT_PUBLIC_APP_URL,
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "http://localhost",
+  "http://127.0.0.1",
+].filter((origin): origin is string => Boolean(origin));
+
 export const auth = betterAuth({
+  trustedOrigins,
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: {
@@ -43,7 +52,6 @@ export const auth = betterAuth({
 
             const adminRole = allRoles.find((r) => r.name === "Administrator");
             const viewerRole = allRoles.find((r) => r.name === "Viewer");
-            const analystRole = allRoles.find((r) => r.name === "Data Analyst");
 
             // If user attempts to assign Administrator on public registration, block and downgrade to Viewer
             if (adminRole && userData.roleId === adminRole.id) {

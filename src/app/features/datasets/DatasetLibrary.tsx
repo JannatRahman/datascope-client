@@ -10,7 +10,7 @@ export function DatasetLibrary() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  const datasets = data?.data ?? [];
+  const datasets = useMemo(() => data?.data ?? [], [data]);
 
   // Extract unique categories
   const categories = useMemo(() => {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -19,8 +19,6 @@ import {
   ChevronDown,
   UserCheck,
   Home,
-  Sparkles,
-  Search,
 } from 'lucide-react';
 import { useSession, signOut } from '@/lib/auth-client';
 import { useGetMeQuery } from '../../api/endpoints/auth.api';
@@ -32,7 +30,38 @@ import {
   useDeleteNotificationMutation,
 } from '../../api/endpoints/notifications.api';
 
+const subscribeToMount = () => () => {};
+const getClientMounted = () => true;
+const getServerMounted = () => false;
+
 export function AppNavbar() {
+  const mounted = useSyncExternalStore(
+    subscribeToMount,
+    getClientMounted,
+    getServerMounted,
+  );
+
+  if (!mounted) {
+    return (
+      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur-md shadow-xs">
+        <div className="mx-auto flex h-16 max-w-7xl items-center px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-indigo-700 text-white shadow-sm shadow-indigo-500/20">
+              <Database className="h-4 w-4" />
+            </div>
+            <span className="text-base font-extrabold tracking-tight text-slate-900">
+              Data<span className="text-indigo-600">Scope</span>
+            </span>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  return <AppNavbarContent />;
+}
+
+function AppNavbarContent() {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session } = useSession();

@@ -22,6 +22,7 @@ interface ExportModalProps {
   currentFilterLogic?: 'AND' | 'OR';
   currentSortBy?: string;
   currentSortOrder?: 'asc' | 'desc';
+  selectedRecordIds?: string[];
 }
 
 export default function ExportModal({
@@ -34,6 +35,7 @@ export default function ExportModal({
   currentFilterLogic = 'AND',
   currentSortBy,
   currentSortOrder,
+  selectedRecordIds = [],
 }: ExportModalProps) {
   const [format, setFormat] = useState<'csv' | 'json'>('csv');
   const [selectedFields, setSelectedFields] = useState<Set<string>>(
@@ -63,7 +65,11 @@ export default function ExportModal({
   const toggleField = (fieldKey: string) => {
     setSelectedFields((prev) => {
       const next = new Set(prev);
-      next.has(fieldKey) ? next.delete(fieldKey) : next.add(fieldKey);
+      if (next.has(fieldKey)) {
+        next.delete(fieldKey);
+      } else {
+        next.add(fieldKey);
+      }
       return next;
     });
   };
@@ -77,14 +83,17 @@ export default function ExportModal({
       selectedFields: selectedFields.size === fields.length ? [] : Array.from(selectedFields),
     };
 
-    if (includeCurrentFilters && currentFilters && currentFilters.length > 0) {
-      dto.filters = currentFilters;
-      dto.filterLogic = currentFilterLogic;
-    }
-
-    if (currentSortBy) {
-      dto.sortBy = currentSortBy;
-      dto.sortOrder = currentSortOrder;
+    if (selectedRecordIds.length > 0) {
+      dto.recordIds = selectedRecordIds;
+    } else {
+      if (includeCurrentFilters && currentFilters && currentFilters.length > 0) {
+        dto.filters = currentFilters;
+        dto.filterLogic = currentFilterLogic;
+      }
+      if (currentSortBy) {
+        dto.sortBy = currentSortBy;
+        dto.sortOrder = currentSortOrder;
+      }
     }
 
     const result = await createExportJob({ datasetId, body: dto }).unwrap();
@@ -139,7 +148,11 @@ export default function ExportModal({
           <div className="bg-indigo-50 rounded-lg px-4 py-3 flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-indigo-900">{datasetName}</p>
-              <p className="text-xs text-indigo-600 mt-0.5">Bounded-memory streaming export</p>
+              <p className="text-xs text-indigo-600 mt-0.5">
+                {selectedRecordIds.length > 0
+                  ? `Exporting ${selectedRecordIds.length} selected record(s)`
+                  : 'Bounded-memory streaming export'}
+              </p>
             </div>
             {!jobId && (
               <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-indigo-200">
