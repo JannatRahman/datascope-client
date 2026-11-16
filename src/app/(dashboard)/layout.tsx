@@ -18,13 +18,14 @@ import {
 import { ClientOnly } from '../components/ClientOnly';
 import { AppNavbar } from '../components/layout/AppNavbar';
 import { useGetMeQuery } from '../api/endpoints/auth.api';
-import { useSession } from '@/lib/auth-client';
 
 function Sidebar() {
   const pathname = usePathname();
-  const { data: session } = useSession();
-  const { data: meData } = useGetMeQuery(undefined, { skip: !session });
-  const roleName = meData?.user?.roleName ?? 'Viewer';
+  // Always resolve the role from the API (Bearer token / cookie). Do not gate on
+  // `useSession()` — it can lag or be null while a valid API session exists,
+  // which previously caused Administrators to be shown as "Viewer".
+  const { data: meData, isLoading: meLoading } = useGetMeQuery();
+  const roleName = meData?.user?.roleName ?? (meLoading ? 'Loading…' : 'Viewer');
 
   const isAdmin = roleName === 'Administrator';
   const isAnalyst = roleName === 'Data Analyst' || isAdmin;

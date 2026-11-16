@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
+  output: "standalone",
+  experimental: { 
     agentFeedback: true,
   },
   cacheComponents: true,

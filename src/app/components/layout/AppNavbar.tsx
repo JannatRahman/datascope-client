@@ -65,7 +65,9 @@ function AppNavbarContent() {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session } = useSession();
-  const { data: meData } = useGetMeQuery(undefined, { skip: !session });
+  // Resolve the role from the API directly (Bearer token / cookie) so the badge
+  // never falls back to "Viewer" for an Administrator when `useSession` lags.
+  const { data: meData, isLoading: meLoading } = useGetMeQuery();
 
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
@@ -80,7 +82,7 @@ function AppNavbarContent() {
   const notifications = notifData?.data || [];
   const unreadCount = unreadData?.data?.unreadCount || 0;
 
-  const roleName = meData?.user?.roleName ?? 'Viewer';
+  const roleName = meData?.user?.roleName ?? (meLoading ? 'Loading…' : 'Viewer');
 
   // Logout handler: Clears tokens and redirects directly to homepage (/)
   const handleSignOut = async () => {
