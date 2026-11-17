@@ -7,6 +7,7 @@ import * as schema from "@/db/schema";
 
 const trustedOrigins = [
   "https://datascope-client.vercel.app",
+      "https://datascope-client-92ypnfo75-jannatrahman1290-2981s-projects.vercel.app",,
   process.env.BETTER_AUTH_URL,
   process.env.NEXT_PUBLIC_APP_URL,
   "http://localhost:3000",
