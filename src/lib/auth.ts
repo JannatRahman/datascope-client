@@ -1,4 +1,4 @@
-import { betterAuth } from "better-auth";
+import { betterAuth, type User } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { bearer, customSession } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
@@ -6,6 +6,7 @@ import { db } from "@/db";
 import * as schema from "@/db/schema";
 
 const trustedOrigins = [
+  "https://datascope-client.vercel.app",
   process.env.BETTER_AUTH_URL,
   process.env.NEXT_PUBLIC_APP_URL,
   "http://localhost:3000",
@@ -15,8 +16,7 @@ const trustedOrigins = [
   "http://localhost",
   "http://127.0.0.1",
 ].filter((origin): origin is string => Boolean(origin));
-
-type UserWithRoleId = { roleId?: string | null } & Record<string, any>;
+type UserWithRoleId = { roleId?: string | null } & Record<string, unknown>;
 
 export const auth = betterAuth({
   trustedOrigins,
@@ -78,45 +78,40 @@ export const auth = betterAuth({
       roleId: {
         type: "string",
         required: false,
+        input: false,
       },
     },
   },
   databaseHooks: {
     user: {
       create: {
-        before: async (userData: any) => {
+        before: async (userData: User & Record<string, unknown>) => {
           try {
-            // Safeguard: fetch Administrator and Viewer roles
             const allRoles = await db
               .select({ id: schema.roles.id, name: schema.roles.name })
               .from(schema.roles);
 
-            const adminRole = allRoles.find((r) => r.name === "Administrator");
             const viewerRole = allRoles.find((r) => r.name === "Viewer");
 
-            // If user attempts to assign Administrator on public registration, block and downgrade to Viewer
-            if (adminRole && userData.roleId === adminRole.id) {
-              return {
-                data: {
-                  ...userData,
-                  roleId: viewerRole?.id,
-                },
-              };
+            if (!viewerRole) {
+              console.error("[Better Auth] Viewer role is missing; blocking public registration");
+              return false;
             }
 
-            // If no role specified (e.g. Google login), default to Viewer
-            if (!userData.roleId && viewerRole) {
-              return {
-                data: {
-                  ...userData,
-                  roleId: viewerRole.id,
-                },
-              };
-            }
+            const safeUserData: User & Record<string, unknown> = { ...userData };
+            delete safeUserData.roleId;
+            delete safeUserData.roleName;
+
+            return {
+              data: {
+                ...safeUserData,
+                roleId: viewerRole.id,
+              },
+            };
           } catch (error) {
-            console.warn("[Better Auth] Error in user create hook:", error);
+            console.error("[Better Auth] Error in user create hook:", error);
+            return false;
           }
-          return { data: userData };
         },
       },
     },
